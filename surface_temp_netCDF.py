@@ -2,10 +2,10 @@ from netCDF4 import Dataset,MFDataset
 import matplotlib.pyplot as plt
 from mpl_toolkits.basemap import Basemap
 import numpy as np
+from scipy import stats
 
-
-TS_fire=MFDataset('D:\\Data Science\\DeepLearning\\Time Series\\fwproject\\TS_fire_online_*nc','r')
-TS_nofire=MFDataset('D:\\Data Science\\DeepLearning\\Time Series\\fwproject\\TS_nofire_online_*nc','r')
+TS_fire=MFDataset('fwproject\\TS_fire_online_*nc','r')
+TS_nofire=MFDataset('fwproject\\TS_nofire_online_*nc','r')
 
 
 lons_fire = TS_fire.variables['lon'][:]
@@ -17,6 +17,25 @@ lons_nofire = TS_nofire.variables['lon'][:]
 lats_nofire = TS_nofire.variables['lat'][:]
 ts_nofire = TS_nofire.variables['TS'][:]
 ts_units_nofire = TS_nofire.variables['TS'].units
+
+# perform t-test of two independent samples
+
+# Compute the descriptive statistics of a and b.
+ts_fire_bar = ts_fire.mean()
+ts_fire_var = ts_fire.var(ddof=1)
+n_ts_fire = ts_fire.size
+ts_fire_dof = n_ts_fire - 1
+
+ts_nofire_bar = ts_nofire.mean()
+ts_nofire_var = ts_nofire.var(ddof=1)
+n_ts_nofire = ts_nofire.size
+ts_nofire_dof = n_ts_nofire - 1
+
+t_value, p_value = stats.ttest_ind_from_stats(ts_fire_bar, np.sqrt(ts_fire_var), n_ts_fire,
+                              ts_nofire_bar, np.sqrt(ts_nofire_var), n_ts_nofire,
+                              equal_var=False)
+
+print("ttest_independent_samples_from_stats: t = %g  p = %g" % (t_value, p_value))
 
 def map_genetator(dataset_nc,lons,lats,ts_units,name_of_plot):
 	# fucntion to generate a map
@@ -56,9 +75,9 @@ def map_genetator(dataset_nc,lons,lats,ts_units,name_of_plot):
 	plt.show()
 
 print("Generating map for fire dataset....")
-map_genetator(ts_fire,lons_fire,lats_fire,ts_units_fire,"Fire dataset")
+#map_genetator(ts_fire,lons_fire,lats_fire,ts_units_fire,"Fire dataset")
 print("Generating map for nofire data set....")
-map_genetator(ts_nofire,lons_nofire,lats_nofire,ts_units_nofire,"Nofire dataset")
+#map_genetator(ts_nofire,lons_nofire,lats_nofire,ts_units_nofire,"Nofire dataset")
 
 print("Mean surface temperature for Fire data set: "+str(ts_fire.mean()))
 print("Mean surface temperature for Nofire data set: "+str(ts_nofire.mean()))
